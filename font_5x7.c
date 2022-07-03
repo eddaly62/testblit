@@ -1,4 +1,4 @@
-// testblitfont.c
+// font_5x7.c
 
 char *font_design_5_7 = 
 "@ "
