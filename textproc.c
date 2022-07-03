@@ -96,18 +96,45 @@ int get_font_record(char c, struct FONT_INDEX *fi, struct FONT_GET_RESULT *fr) {
     return -1;
 }
 
+// set the print style to INVERT, UNDER_SCORE, STRIKE_THRU, BLINK
+// these can be or'd together
+int set_font_style(struct FONT_CHAR_PARAM *s, unsigned char style){
 
-int set_font_parms(struct FONT_CHAR_PARAM *fcp, float scale, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc) {
+    if (s == NULL) {
+        fprintf(stderr, "pointer to style structure is NULL\n");
+        return -1;
+    }
+    if (style > (INVERT | UNDER_SCORE | STRIKE_THRU | BLINK)) {
+        fprintf(stderr, "Invalid style value\n");
+        return -1;
+    }
+    s->style = style;
+    return 0;
+}
+
+int set_font_color(struct FONT_CHAR_PARAM *fcp, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc) {
     
     if (fcp == NULL) {
+        fprintf(stderr, "null pointer to FONT_CHAR_PARAM structure\n");
         return -1;
     }
     
-    fcp->scale = scale;
     fcp->bgcolor = bgc;
     fcp->fgcolor = fgc;
     return 0;
 }
+
+int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale) {
+    
+    if (fcp == NULL) {
+        fprintf(stderr, "null pointer to FONT_CHAR_PARAM structure\n");
+        return -1;
+    }
+    
+    fcp->scale;
+    return 0;
+}
+
 
 int make_character(struct FONT_GET_RESULT *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b) {
 

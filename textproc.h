@@ -58,7 +58,9 @@ struct FONT_CHAR_PARAM {
 // prototypes
 int build_font_index(struct FONT_INDEX *fi, char *font, size_t size);
 int get_font_record(char c, struct FONT_INDEX *fi, struct FONT_GET_RESULT *fr);
-int set_font_parms(struct FONT_CHAR_PARAM *fcp, float scale, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
+int set_font_color(struct FONT_CHAR_PARAM *fcp, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
+int set_font_style(struct FONT_CHAR_PARAM *s, unsigned char style);
+int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale);
 int make_character(struct FONT_GET_RESULT *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b);
 
 

@@ -99,10 +99,18 @@ int main()  {
             printf("char not found in font index array\n");
         }
 
-        r = set_font_parms(&fcparam, 2, BLACK, WHITE);
+        r = set_font_color(&fcparam, BLACK, WHITE);
         if (r == -1) {
             printf("could not set font parmaters\n");
-        }        
+        }   
+        r = set_font_scale(&fcparam, 2);
+        if (r == -1) {
+            printf("could not set font parmaters\n");
+        }   
+        r = set_font_style(&fcparam, (INVERT | UNDER_SCORE | STRIKE_THRU | BLINK));
+        if (r == -1) {
+            printf("could not set font parmaters\n");
+        }   
 
         r = make_character(&fresult, &fcparam, bmp);
         if (r == -1) {
