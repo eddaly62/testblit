@@ -10,58 +10,126 @@ extern "C" {
 #include <allegro5/allegro.h>
 
 // color definitions
-#define BLACK al_map_rgb(0, 0, 0)
-#define WHITE al_map_rgb(255, 255, 255)
-#define RED al_map_rgb(255, 0, 0)
-#define BLUE al_map_rgb(0, 0, 255)
-#define GREEN al_map_rgb(0, 255, 0)
+#define BLACK   al_map_rgb(0, 0, 0)
+#define WHITE   al_map_rgb(255, 255, 255)
+#define RED     al_map_rgb(255, 0, 0)
+#define BLUE    al_map_rgb(0, 0, 255)
+#define GREEN   al_map_rgb(0, 255, 0)
+
+// window defaults
+#define DEFAULT_WINDOW_BGCOLOR  BLACK
+#define DEFAULT_WINDOW_FGCOLOR  WHITE
+#define DEFAULT_WINDOW_HOME_X   0
+#define DEFAULT_WINDOW_HOME_Y   0
+#define DEFAULT_WINDOW_SCALE    2
+#define DEFAULT_WINDOW_STYLE    NO_STYLE
+
+// maximum dprint string length
+#define MAX_PRINT_LINE  80
 
 // folder were all "graphic" resources will located
 #define RESOURCES_DIR "resources"
 
 // maximum number of character in a font file
-#define MAX_FONT_INDEX  150
+#define MAX_FONT_GLYPHS  150
+
+// maximum charcters in a window
+#define MAX_CHARS_IN_WINDOW 512
 
 // display this character when there is no match in the font index array
 #define DEFAULT_ERR_CHAR_INDEX 0
 
+// font style
 extern const unsigned char INVERT;
 extern const unsigned char UNDER_SCORE;
 extern const unsigned char STRIKE_THRU;
 extern const unsigned char BLINK;
+extern const unsigned char NO_STYLE;
 
-struct FONT_REC_INDEX {
-    char c;     // ascii character display
-    int index;  // start of pattern
-    int rowcnt; // number of rows
-    int colcnt; // number of columns
+struct FONT_LUT_REC {
+    char c;                 // ascii character display
+    int index;              // start of pattern
+    int rowcnt;             // number of rows
+    int colcnt;             // number of columns
 };
 
-struct FONT_INDEX {
+struct FONT_LUT {
     char *fp;               // pointer to font array
     int numofchars;         // number of chars in font array
-    struct FONT_REC_INDEX rec[MAX_FONT_INDEX];
+    struct FONT_LUT_REC rec[MAX_FONT_GLYPHS];
 };
 
-struct FONT_GET_RESULT {
+struct FONT_REC {
     char *fp;                   // pointer to font array
-    struct FONT_REC_INDEX rec;  // results of search
+    struct FONT_LUT_REC rec;    // results of search
 };
 
 struct FONT_CHAR_PARAM {
-    float scale;            // min value of ratio of display resolution to screen resolution 
-    ALLEGRO_COLOR bgcolor;  // background color
-    ALLEGRO_COLOR fgcolor;  // foreground color
-    unsigned char style;    // invert, under-line, strike-thru, blink
+    float scale;                // min value of ratio of display resolution to screen resolution 
+    ALLEGRO_COLOR bgcolor;      // background color
+    ALLEGRO_COLOR fgcolor;      // foreground color
+    unsigned char style;        // INVERT | UNDER_SCORE | STRIKE_THRU | BLINK
+};
+
+// contains everything the text processor needs to display a character
+struct CHARACTER {
+    ALLEGRO_BITMAP *bmp;
+    struct FONT_CHAR_PARAM fcp;
+    struct FONT_REC fr;
+    float x;
+    float y;
+};
+
+struct WINDOW {
+    
+    // display
+    ALLEGRO_DISPLAY *display;   // pointer to display object
+    ALLEGRO_COLOR winbgcolor;   // window background color
+    ALLEGRO_COLOR winfgcolor;   // window foreground color
+    float width;                // width of window
+    float height;               // height of window
+    
+    // cursor
+    float xcursor;              // cursor location
+    float ycursor;
+    float pixperline;           // pixels per line
+    unsigned char cursorstyle;  // cursor style
+    unsigned char cursorchar;   // cursor shape
+
+    // tabs
+    // todo - tbd
+    
+    // text
+    struct FONT_LUT *flut;      // current active font
+    struct FONT_CHAR_PARAM fcp; // active character parameters
+    int charcnt;                // nuber of characters in window
+    struct CHARACTER c[MAX_CHARS_IN_WINDOW];
+
+    // graphics
+    // TODO - add graphics
 };
 
 // prototypes
-int build_font_index(struct FONT_INDEX *fi, char *font, size_t size);
-int get_font_record(char c, struct FONT_INDEX *fi, struct FONT_GET_RESULT *fr);
+int build_font_lut(struct FONT_LUT *fi, char *font, size_t size);
+int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr);
 int set_font_color(struct FONT_CHAR_PARAM *fcp, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
 int set_font_style(struct FONT_CHAR_PARAM *s, unsigned char style);
 int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale);
-int make_character(struct FONT_GET_RESULT *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b);
+int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b);
+
+// window prototypes
+struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height);
+int set_window_colors(struct WINDOW *w, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
+int set_window_cursor_pos(struct WINDOW *w, int x, int y);
+int set_window_defaults(struct WINDOW *w);
+int clear_window(struct WINDOW *w);
+int set_window_font(struct WINDOW *w, struct FONT_LUT *fntlut);
+int update_cursor_pos(struct WINDOW *w);
+int dprint(struct WINDOW *w, char *s, unsigned char style);
+int window_update(struct WINDOW *w);
+void destroy_window(struct WINDOW *w);
+
+
 
 
 #ifdef __cplusplus

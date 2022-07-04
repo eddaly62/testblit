@@ -19,14 +19,15 @@
 #include "textproc.h"
 
 // style flags
+const unsigned char NO_STYLE = 0;
 const unsigned char INVERT = 1;
 const unsigned char UNDER_SCORE  = 2;
 const unsigned char STRIKE_THRU  = 4;
 const unsigned char BLINK = 8;
 
-// builds a font index table that the bitmap functions will use
+// builds a font look-up table that the bitmap functions will use
 // returns -1 if error, otherwise the number of characters found in font array
-int build_font_index(struct FONT_INDEX *fi, char *font, size_t size) {
+int build_font_lut(struct FONT_LUT *fi, char *font, size_t size) {
 
     int n, rcnt, ccnt, nrec, idx;
 
@@ -77,7 +78,7 @@ int build_font_index(struct FONT_INDEX *fi, char *font, size_t size) {
 }
 
 
-int get_font_record(char c, struct FONT_INDEX *fi, struct FONT_GET_RESULT *fr) {
+int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr) {
 
     int i;
 
@@ -85,14 +86,14 @@ int get_font_record(char c, struct FONT_INDEX *fi, struct FONT_GET_RESULT *fr) {
         if (c == fi->rec[i].c) {
             // found character
             fr->fp = fi->fp;
-            memcpy(&fr->rec, &fi->rec[i], sizeof(struct FONT_REC_INDEX));
+            memcpy(&fr->rec, &fi->rec[i], sizeof(struct FONT_LUT_REC));
             return 0;
         }
     }
     // did not find a match
     // return a error and a default char
     fr->fp = fi->fp;
-    memcpy(&fr->rec, &fi->rec[DEFAULT_ERR_CHAR_INDEX], sizeof(struct FONT_REC_INDEX));
+    memcpy(&fr->rec, &fi->rec[DEFAULT_ERR_CHAR_INDEX], sizeof(struct FONT_LUT_REC));
     return -1;
 }
 
@@ -131,12 +132,12 @@ int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale) {
         return -1;
     }
     
-    fcp->scale;
+    fcp->scale = scale;
     return 0;
 }
 
 
-int make_character(struct FONT_GET_RESULT *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b) {
+int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b) {
 
     int i;
     float r, c;
@@ -180,5 +181,3 @@ int make_character(struct FONT_GET_RESULT *fr, struct FONT_CHAR_PARAM *fcp, ALLE
         }
     }
 }
-
-

@@ -22,6 +22,11 @@
 #define MAX_IN  20
 #define SEXIT   "q"
 
+#define WIN_WIDTH   512
+#define WIN_HEIGHT  256
+#define HOME_X      0
+#define HOME_Y      0
+
 // Normal
 #define NX  20
 #define NY  20
@@ -51,10 +56,17 @@ extern char *font_design_7_9;
 extern char *font_design_10_14;
 extern char *font_design_10_14_rulings;
 
-struct FONT_INDEX font5x7index; 
-struct FONT_REC_INDEX fontrec;
-struct FONT_GET_RESULT fresult;
+struct FONT_LUT font5x7lut;
+struct FONT_LUT font5x7rlut; 
+struct FONT_LUT font7x9lut; 
+struct FONT_LUT font7x9rlut; 
+struct FONT_LUT font10x14lut; 
+struct FONT_LUT font10x14rlut; 
+
+struct FONT_LUT_REC fontrec;
+struct FONT_REC fresult;
 struct FONT_CHAR_PARAM fcparam;
+struct WINDOW *win;
 
 
 int main()  {
@@ -66,6 +78,8 @@ int main()  {
     char in[MAX_IN];
 
     ALLEGRO_DISPLAY *display;
+    ALLEGRO_DISPLAY *display1;
+
     ALLEGRO_FONT *bmpfnt;
     ALLEGRO_BITMAP *bmp;
 
@@ -80,21 +94,63 @@ int main()  {
     al_change_directory(al_path_cstr(path, '/'));
     al_destroy_path(path);
 
-    display = al_create_display(512,256);
-    
+    // build font look-up tables
+    r = build_font_lut(&font5x7lut, font_design_5_7, strlen(font_design_5_7));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }
+    r = build_font_lut(&font5x7rlut, font_design_5_7_rulings, strlen(font_design_5_7_rulings));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }
+    r = build_font_lut(&font7x9lut, font_design_7_9, strlen(font_design_7_9));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }    
+    r = build_font_lut(&font7x9rlut, font_design_7_9_rulings, strlen(font_design_7_9_rulings));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }
+    r = build_font_lut(&font10x14lut, font_design_10_14, strlen(font_design_10_14));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }
+    r = build_font_lut(&font10x14rlut, font_design_10_14_rulings, strlen(font_design_10_14_rulings));
+    if (r == -1) {
+        printf("malformed font index table\n");
+    }
+
+
+    //display = al_create_display(512,256); // todo remove
+
+    win = create_window(display1, WIN_WIDTH, WIN_HEIGHT);
+    r = set_window_defaults(win);
+    if (r == -1) {
+        fprintf(stderr, "could not set window defaults\n");
+    }
+    r = set_window_colors(win, BLACK, WHITE);
+    if (r == -1) {
+        fprintf(stderr, "could not set window color\n");
+    }
+    r = set_window_cursor_pos(win, HOME_X, HOME_Y);
+    if (r == -1) {
+        fprintf(stderr, "could not set cursor position\n");
+    }
+    r = set_window_font(win, &font5x7lut);
+    if (r == -1) {
+        fprintf(stderr, "could not set font\n");
+    }
+
 
     while (running) {
 
+        #if 0
         al_clear_to_color(RED);
         
         bmp = al_create_bitmap(6*2, 10*2);
 
-        r = build_font_index(&font5x7index, font_design_5_7, strlen(font_design_5_7));
-        if (r == -1) {
-            printf("malformed font index table\n");
-        }
 
-        r = get_font_record('3', &font5x7index, &fresult);
+        r = get_font_record('3', &font5x7lut, &fresult);
         if (r == -1) {
             printf("char not found in font index array\n");
         }
@@ -117,27 +173,41 @@ int main()  {
             printf("could not make character\n");
         }
 
-        al_set_target_backbuffer(display);
+        #endif
 
-        al_draw_bitmap(bmp, NX, NY, 0);
+        r = dprint(win, "321", 0);
+        if (r == -1) {
+            fprintf(stderr, "error with dprint\n");
+        }   
+
+        r = window_update(win);
+        if (r == -1) {
+            fprintf(stderr, "error with window_update\n");
+        } 
+
+        //al_set_target_backbuffer(display);
+
+        //al_draw_bitmap(bmp, NX, NY, 0);
 
 
-        al_flip_display();
+        //al_flip_display();
         
         #if 0
         // 2 Hz rate
         usleep(250*1000);
         #endif
 
-            if(fgets(in, sizeof(in), stdin) > 0){
-                if (strcmp(SEXIT, in) == 0) {
-                    // quit
-                    //al_destroy_font(bmpfnt);
-                    //al_destroy_bitmap(bmp);
-                    al_destroy_display(display);
-                    return 0;
-                }
+        if(fgets(in, sizeof(in), stdin) > 0){
+            if (strcmp(SEXIT, in) == 0) {
+                // quit
+                //al_destroy_font(bmpfnt);
+                //al_destroy_bitmap(bmp);
+                //al_destroy_display(display);
+                destroy_window(win);
+
+                return 0;
             }
+        }
 
     }
 }
