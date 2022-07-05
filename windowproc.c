@@ -361,8 +361,8 @@ int window_update(struct WINDOW *w) {
         if (w->c[i].bmp != NULL) {
 
             // check style, process blinking
-            if ((!w->c[i].fcp.style & BLINK) ||
-                (w->c[i].fcp.style & BLINK) && (w->blinkcounter & BLINK_MASK_1)) {
+            if ((!(w->c[i].fcp.style & BLINK)) ||
+                (w->c[i].fcp.style & BLINK) && (w->blinkcounter & BLINK_MASK_p50)) {
 
                 // add/subtract any scrolling offsets (offsets can be negative)
                 x = w->c[i].x + w->scrolloffsetx;

@@ -25,7 +25,9 @@ const unsigned char UNDER_SCORE  = 2;
 const unsigned char STRIKE_THRU  = 4;
 const unsigned char BLINK = 8;
 
-// blink rates
+// blink rate divisor
+// blink rate is determined by the window_update function calling rate
+// you can select slower blink rates by selecting one of these divisors
 const unsigned char BLINK_MASK_1    = 1;    // fastest rate
 const unsigned char BLINK_MASK_p50  = 2;    // 1/2 of the fastest rate
 const unsigned char BLINK_MASK_p25  = 4;    // 1/4 of the fastest rate
@@ -33,15 +35,23 @@ const unsigned char BLINK_MASK_p125 = 8;    // 1/8 of the fastest rate
 
 // builds a font look-up table that the bitmap functions will use
 // returns -1 if error, otherwise the number of characters found in font array
-int build_font_lut(struct FONT_LUT *fi, char *font, size_t size) {
+int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru, int runderline) {
 
     int n, rcnt, ccnt, nrec, idx;
+
+    if (fi == NULL) {
+        return -1;
+    }
 
     nrec = 0;
     idx = -1;
 
     // save pointer to font
     fi->fp = font;
+
+    // save font style params
+    fi->strikethrurow = rstrikethru;
+    fi->underscorerow = runderline;
 
     for (n = 0; n < size; n++) {
         if (font[n] == '@') {
@@ -79,7 +89,7 @@ int build_font_lut(struct FONT_LUT *fi, char *font, size_t size) {
         }
     }
     
-    // return the number of character glyphs forund in font file
+    // return the number of character glyphs forund in font file or -1 if error
     return fi->numofchars;
 }
 
@@ -91,6 +101,8 @@ int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr) {
     for (i = 0; i < fi->numofchars; i++) {
         if (c == fi->rec[i].c) {
             // found character
+            fr->strikethrurow = fi->strikethrurow;
+            fr->underscorerow = fi->underscorerow;
             fr->fp = fi->fp;
             memcpy(&fr->rec, &fi->rec[i], sizeof(struct FONT_LUT_REC));
             return 0;
@@ -98,6 +110,8 @@ int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr) {
     }
     // did not find a match
     // return a error and a default char
+    fr->strikethrurow = fi->strikethrurow;
+    fr->underscorerow = fi->underscorerow;
     fr->fp = fi->fp;
     memcpy(&fr->rec, &fi->rec[DEFAULT_ERR_CHAR_INDEX], sizeof(struct FONT_LUT_REC));
     return -1;
@@ -142,7 +156,8 @@ int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale) {
     return 0;
 }
 
-
+// makes bitmap of character in fr, using parameters in fcp and stores bitmap at b
+// returns 0 if successful, otherwise -1
 int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b) {
 
     int i;
@@ -150,6 +165,11 @@ int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BIT
     float x0, x1;
     float y0, y1;
     ALLEGRO_COLOR color;
+    //unsigned char style;
+
+    if ((fr == NULL) || (fcp == NULL) || (b == NULL)) {
+        return -1;
+    }
 
     al_set_target_bitmap(b);
 
@@ -160,6 +180,36 @@ int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BIT
             x1 = fcp->scale*(c+1);
             y0 = fcp->scale*(r);
             y1 = fcp->scale*(r+1);
+
+            // todo - refactor
+            if (fcp->style & UNDER_SCORE || fcp->style & STRIKE_THRU) {
+                if (fcp->style & UNDER_SCORE) {
+                    if (r == fr->underscorerow) {
+                        if (fcp->style & INVERT) {
+                            color = fcp->bgcolor;
+                        }
+                        else {
+                            color = fcp->fgcolor;
+                        }
+                        al_draw_filled_rectangle(x0, y0, x1, y1, color);
+                        i++;
+                        continue;
+                    }
+                }
+                if (fcp->style & STRIKE_THRU) {
+                    if (r == fr->strikethrurow) {
+                        if (fcp->style & INVERT) {
+                            color = fcp->bgcolor;
+                        }
+                        else {
+                            color = fcp->fgcolor;
+                        }
+                        al_draw_filled_rectangle(x0, y0, x1, y1, color);
+                        i++;
+                        continue;
+                    }
+                }
+            }
 
             switch (fr->fp[i]) {
 
@@ -196,4 +246,5 @@ int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BIT
             i++;
         }
     }
+    return 0;
 }

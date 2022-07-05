@@ -48,6 +48,24 @@
 #define BX  NX
 #define BY  UY+YSPACE
 
+#define FONT5X7_UNDERLINE_OFFSET    9
+#define FONT5X7_STRIKETHRU_OFFSET   4
+
+#define FONT5X7R_UNDERLINE_OFFSET   0
+#define FONT5X7R_STRIKETHRU_OFFSET  0
+
+#define FONT7X9_UNDERLINE_OFFSET    0
+#define FONT7X9_STRIKETHRU_OFFSET   0
+
+#define FONT7X9R_UNDERLINE_OFFSET   0
+#define FONT7X9R_STRIKETHRU_OFFSET  0
+
+#define FONT10X14_UNDERLINE_OFFSET  0
+#define FONT10X14_STRIKETHRU_OFFSET 0
+
+#define FONT10X14R_UNDERLINE_OFFSET 0
+#define FONT10X14R_STRIKETHRU_OFFSET    0
+
 
 extern char *font_design_5_7;
 extern char *font_design_7_9_rulings;
@@ -95,27 +113,33 @@ int main()  {
     al_destroy_path(path);
 
     // build font look-up tables
-    r = build_font_lut(&font5x7lut, font_design_5_7, strlen(font_design_5_7));
+    r = build_font_lut(&font5x7lut, font_design_5_7, strlen(font_design_5_7),
+                        FONT5X7_STRIKETHRU_OFFSET, FONT5X7_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }
-    r = build_font_lut(&font5x7rlut, font_design_5_7_rulings, strlen(font_design_5_7_rulings));
+    r = build_font_lut(&font5x7rlut, font_design_5_7_rulings, strlen(font_design_5_7_rulings),
+                        FONT5X7R_STRIKETHRU_OFFSET, FONT5X7R_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }
-    r = build_font_lut(&font7x9lut, font_design_7_9, strlen(font_design_7_9));
+    r = build_font_lut(&font7x9lut, font_design_7_9, strlen(font_design_7_9),
+                        FONT7X9_STRIKETHRU_OFFSET, FONT7X9_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }    
-    r = build_font_lut(&font7x9rlut, font_design_7_9_rulings, strlen(font_design_7_9_rulings));
+    r = build_font_lut(&font7x9rlut, font_design_7_9_rulings, strlen(font_design_7_9_rulings),
+                        FONT7X9R_STRIKETHRU_OFFSET, FONT7X9R_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }
-    r = build_font_lut(&font10x14lut, font_design_10_14, strlen(font_design_10_14));
+    r = build_font_lut(&font10x14lut, font_design_10_14, strlen(font_design_10_14),
+                        FONT10X14_STRIKETHRU_OFFSET, FONT10X14_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }
-    r = build_font_lut(&font10x14rlut, font_design_10_14_rulings, strlen(font_design_10_14_rulings));
+    r = build_font_lut(&font10x14rlut, font_design_10_14_rulings, strlen(font_design_10_14_rulings),
+                        FONT10X14R_STRIKETHRU_OFFSET, FONT10X14R_UNDERLINE_OFFSET);
     if (r == -1) {
         printf("malformed font index table\n");
     }
@@ -175,7 +199,8 @@ int main()  {
 
         #endif
 
-        r = dprint(win, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", BLINK | INVERT);
+        r = dprint(win, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    UNDER_SCORE | STRIKE_THRU | INVERT | BLINK);
         if (r == -1) {
             fprintf(stderr, "error with dprint\n");
         }   

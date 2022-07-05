@@ -63,10 +63,14 @@ struct FONT_LUT_REC {
 struct FONT_LUT {
     char *fp;               // pointer to font array
     int numofchars;         // number of chars in font array
+    int underscorerow;      // row to place under score, row 0 is top row of font
+    int strikethrurow;      // row to place strike thru, row 0 is top row of font
     struct FONT_LUT_REC rec[MAX_FONT_GLYPHS];
 };
 
 struct FONT_REC {
+    int underscorerow;          // row to place under score, row 0 is top row of font
+    int strikethrurow;          // row to place strike thru, row 0 is top row of font
     char *fp;                   // pointer to font array
     struct FONT_LUT_REC rec;    // results of search
 };
@@ -76,6 +80,7 @@ struct FONT_CHAR_PARAM {
     ALLEGRO_COLOR bgcolor;      // background color
     ALLEGRO_COLOR fgcolor;      // foreground color
     unsigned char style;        // INVERT | UNDER_SCORE | STRIKE_THRU | BLINK
+    unsigned char blinkdivisor; // blink divisor, only valid if style is BLINK
 };
 
 // contains everything the text processor needs to display a character
@@ -95,6 +100,8 @@ struct WINDOW {
     ALLEGRO_COLOR winfgcolor;   // window foreground color
     float width;                // width of window
     float height;               // height of window
+    unsigned char blinkcounter; // blink counter
+    unsigned char blinkdivisor; // mask for selecting blink rate divisor 
     
     // cursor
     float xcursor;              // cursor location
@@ -113,14 +120,13 @@ struct WINDOW {
     struct FONT_CHAR_PARAM fcp; // active character parameters
     int charcnt;                // nuber of characters in window
     struct CHARACTER c[MAX_CHARS_IN_WINDOW];
-    unsigned char blinkcounter; // blink counter
 
     // graphics
     // TODO - add graphics
 };
 
 // prototypes
-int build_font_lut(struct FONT_LUT *fi, char *font, size_t size);
+int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru, int runderline);
 int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr);
 int set_font_color(struct FONT_CHAR_PARAM *fcp, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
 int set_font_style(struct FONT_CHAR_PARAM *s, unsigned char style);
