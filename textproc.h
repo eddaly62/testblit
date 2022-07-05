@@ -24,8 +24,6 @@ extern "C" {
 #define DEFAULT_WINDOW_SCALE    2
 #define DEFAULT_WINDOW_STYLE    NO_STYLE
 
-// maximum dprint string length
-#define MAX_PRINT_LINE  80
 
 // folder were all "graphic" resources will located
 #define RESOURCES_DIR "resources"
@@ -36,6 +34,9 @@ extern "C" {
 // maximum charcters in a window
 #define MAX_CHARS_IN_WINDOW 512
 
+// maximum dprint string length
+#define MAX_PRINT_LINE  MAX_CHARS_IN_WINDOW
+
 // display this character when there is no match in the font index array
 #define DEFAULT_ERR_CHAR_INDEX 0
 
@@ -45,6 +46,12 @@ extern const unsigned char UNDER_SCORE;
 extern const unsigned char STRIKE_THRU;
 extern const unsigned char BLINK;
 extern const unsigned char NO_STYLE;
+
+// blink rates devisor for blink counter
+extern const unsigned char BLINK_MASK_1;    // fastest rate
+extern const unsigned char BLINK_MASK_p50;  // 1/2 of the fastest rate
+extern const unsigned char BLINK_MASK_p25;  // 1/4 of the fastest rate
+extern const unsigned char BLINK_MASK_p125; // 1/8 of the fastest rate
 
 struct FONT_LUT_REC {
     char c;                 // ascii character display
@@ -92,6 +99,8 @@ struct WINDOW {
     // cursor
     float xcursor;              // cursor location
     float ycursor;
+    float scrolloffsetx;        // scrolling offset
+    float scrolloffsety;
     float pixperline;           // pixels per line
     unsigned char cursorstyle;  // cursor style
     unsigned char cursorchar;   // cursor shape
@@ -104,6 +113,7 @@ struct WINDOW {
     struct FONT_CHAR_PARAM fcp; // active character parameters
     int charcnt;                // nuber of characters in window
     struct CHARACTER c[MAX_CHARS_IN_WINDOW];
+    unsigned char blinkcounter; // blink counter
 
     // graphics
     // TODO - add graphics

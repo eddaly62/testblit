@@ -25,6 +25,12 @@ const unsigned char UNDER_SCORE  = 2;
 const unsigned char STRIKE_THRU  = 4;
 const unsigned char BLINK = 8;
 
+// blink rates
+const unsigned char BLINK_MASK_1    = 1;    // fastest rate
+const unsigned char BLINK_MASK_p50  = 2;    // 1/2 of the fastest rate
+const unsigned char BLINK_MASK_p25  = 4;    // 1/4 of the fastest rate
+const unsigned char BLINK_MASK_p125 = 8;    // 1/8 of the fastest rate
+
 // builds a font look-up table that the bitmap functions will use
 // returns -1 if error, otherwise the number of characters found in font array
 int build_font_lut(struct FONT_LUT *fi, char *font, size_t size) {
@@ -159,13 +165,23 @@ int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BIT
 
                 case '-':
                 case '=':
-                color = fcp->bgcolor;
+                if (fcp->style & INVERT) {
+                    color = fcp->fgcolor;
+                }
+                else {
+                    color = fcp->bgcolor;
+                }
                 al_draw_filled_rectangle(x0, y0, x1, y1, color);
                 break;
 
                 case 'x':
                 case '*':
-                color = fcp->fgcolor;
+                if (fcp->style & INVERT) {
+                    color = fcp->bgcolor;
+                }
+                else {
+                    color = fcp->fgcolor;
+                }
                 al_draw_filled_rectangle(x0, y0, x1, y1, color);
                 break;
 

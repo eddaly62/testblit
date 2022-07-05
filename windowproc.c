@@ -18,13 +18,6 @@
 
 #include "textproc.h"
 
-#if 0
-// style flags
-const unsigned char INVERT = 1;
-const unsigned char UNDER_SCORE  = 2;
-const unsigned char STRIKE_THRU  = 4;
-const unsigned char BLINK = 8;
-#endif
 
 // create a window
 // returns pointer to window or NULL if error
@@ -174,6 +167,7 @@ int set_window_defaults(struct WINDOW *w) {
 }
 
 // clear window
+// returns 0 if success, otherwise -1
 int clear_window(struct WINDOW *w) {
     
     int r;
@@ -203,7 +197,8 @@ int clear_window(struct WINDOW *w) {
     return 0;
 }
 
-
+// copies the current cursor location to the charcter structure
+// returns 0 if success, otherwise -1
 int cp_cursorxy_to_charxy(struct WINDOW *w) {
     
     if (w == NULL) {
@@ -217,10 +212,14 @@ int cp_cursorxy_to_charxy(struct WINDOW *w) {
     return 0;
 }
 
+// move cursor position one character position based on the current character
+// at the cursor position. Move to the next row if position is not viewable.
+// returns 0 if success, otherwise -1
 int update_cursor_pos(struct WINDOW *w) {
 
     int charcnt;
     float scale;
+    //float cursor;
 
     if (w == NULL) {
         fprintf(stderr, "cursor position not updated, window pointer is NULL\n");
@@ -231,7 +230,7 @@ int update_cursor_pos(struct WINDOW *w) {
     charcnt = w->charcnt;
     scale = w->fcp.scale;
 
-//    w->xcursor += c->fr.rec.colcnt;
+    // calculate where to move the cursor
     w->xcursor += (float)w->c[charcnt].fr.rec.colcnt * scale;
 
     // test if we went past the width of the window
@@ -245,6 +244,8 @@ int update_cursor_pos(struct WINDOW *w) {
     return 0;
 }
 
+
+// returns 0 if success, otherwise -1
 int dprint(struct WINDOW *w, char *s, unsigned char style) {
 
     int r;
@@ -253,11 +254,8 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
     int charcnt;
     float height, width;
     ALLEGRO_COLOR bgc, fgc;
-    //ALLEGRO_BITMAP *bmp; // todo
-    //struct FONT_LUT *flut;
     char t[MAX_PRINT_LINE];
     char c;
-    //float cursx, cursy;
 
     if (w == NULL) {
         fprintf(stderr, "print error, window pointer is NULL\n");
@@ -318,25 +316,22 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
             return -1;  
         }
 
-        r = update_cursor_pos(w);
-        if (r == -1) {
-            printf("could not update cursor position\n");
-            return -1;  
-        }
         r = cp_cursorxy_to_charxy(w);
         if (r == -1) {
             printf("could not copy cursor position\n");
             return -1;  
         }
+
+        r = update_cursor_pos(w);
+        if (r == -1) {
+            printf("could not update cursor position\n");
+            return -1;  
+        }
         w->charcnt++;
+        printf("charcnt = %d\n", w->charcnt); // todo
 
     }
-    //al_set_target_backbuffer(display);
-
-    //al_draw_bitmap(bmp, NX, NY, 0);
-
     return 0;
-
 }
 
 int window_update(struct WINDOW *w) {
@@ -349,15 +344,35 @@ int window_update(struct WINDOW *w) {
         return -1;
     }
 
+    // increment blink counter
+    if (w->blinkcounter == UCHAR_MAX) {
+        w->blinkcounter = 0;
+    }
+    else {
+        w->blinkcounter++;
+    }
+
     al_set_target_backbuffer(w->display);
+    al_clear_to_color(w->winbgcolor);
 
     for (i = 0; i < w->charcnt; i++) {
-
+        
+        // test if a valid bitmap
         if (w->c[i].bmp != NULL) {
 
-            x = w->c[i].x;
-            y = w->c[i].y;
-            al_draw_bitmap(w->c[i].bmp, x, y, 0);
+            // check style, process blinking
+            if ((!w->c[i].fcp.style & BLINK) ||
+                (w->c[i].fcp.style & BLINK) && (w->blinkcounter & BLINK_MASK_1)) {
+
+                // add/subtract any scrolling offsets (offsets can be negative)
+                x = w->c[i].x + w->scrolloffsetx;
+                y = w->c[i].y + w->scrolloffsety;
+
+                // display character only if viewable
+                if ((x >= 0) && (x < w->width) && (y >= 0) && (y < w->height)) {
+                    al_draw_bitmap(w->c[i].bmp, x, y, 0);
+                }
+            }
         }
     }
 

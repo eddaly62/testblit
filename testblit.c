@@ -175,16 +175,20 @@ int main()  {
 
         #endif
 
-        r = dprint(win, "321", 0);
+        r = dprint(win, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", BLINK | INVERT);
         if (r == -1) {
             fprintf(stderr, "error with dprint\n");
         }   
 
-        r = window_update(win);
-        if (r == -1) {
-            fprintf(stderr, "error with window_update\n");
-        } 
+            
+        while (1) {
+            r = window_update(win);
+            if (r == -1) {
+                fprintf(stderr, "error with window_update\n");
+            } 
 
+            usleep(250*1000);
+        }
         //al_set_target_backbuffer(display);
 
         //al_draw_bitmap(bmp, NX, NY, 0);
