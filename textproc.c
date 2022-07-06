@@ -39,7 +39,7 @@ int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru
 
     int n, rcnt, ccnt, nrec, idx;
 
-    if (fi == NULL) {
+    if ((fi == NULL) || (font == NULL)) {
         return -1;
     }
 
