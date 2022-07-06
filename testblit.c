@@ -23,7 +23,9 @@
 #define SEXIT   "q"
 
 #define WIN_WIDTH   512
-#define WIN_HEIGHT  256
+#define WIN_HEIGHT  512
+#define WIN_LOC_X   200
+#define WIN_LOC_Y   200
 #define HOME_X      0
 #define HOME_Y      0
 
@@ -147,7 +149,7 @@ int main()  {
 
     //display = al_create_display(512,256); // todo remove
 
-    win = create_window(display1, WIN_WIDTH, WIN_HEIGHT);
+    win = create_window(display1, WIN_WIDTH, WIN_HEIGHT, WIN_LOC_X, WIN_LOC_Y);
     r = set_window_defaults(win);
     if (r == -1) {
         fprintf(stderr, "could not set window defaults\n");
@@ -199,8 +201,8 @@ int main()  {
 
         #endif
 
-        r = dprint(win, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                    UNDER_SCORE | STRIKE_THRU | INVERT | BLINK);
+        r = dprint(win, "0123456789\nabcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                    NO_STYLE);
         if (r == -1) {
             fprintf(stderr, "error with dprint\n");
         }   

@@ -21,7 +21,7 @@
 
 // create a window
 // returns pointer to window or NULL if error
-struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height) {
+struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height, int xpos, int ypos) {
     
     struct WINDOW *p;
 
@@ -42,6 +42,10 @@ struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height) {
     p->width = width;
     p->height = height;
     p->charcnt = 0;
+    p->winposx = xpos;
+    p->winposy = ypos;
+    al_set_new_window_position(p->winposx, p->winposy);
+    al_set_new_display_flags(DEFAULT_WINDOW_FLAGS);
     p->display = al_create_display(p->width,p->height);
     if (p->display == NULL) {
         fprintf(stderr, "could not create display\n");
@@ -180,6 +184,7 @@ int clear_window(struct WINDOW *w) {
 
     al_clear_to_color(w->winbgcolor);
 
+    // clear text bitmaps
     for (i = 0; i < w->charcnt; i++) { // todo refactor
         if (w->c[i].bmp != NULL) {
             al_destroy_bitmap(w->c[i].bmp);
@@ -212,6 +217,20 @@ int cp_cursorxy_to_charxy(struct WINDOW *w) {
     return 0;
 }
 
+// move cursor to the next new line (carriage return, line feed)
+// returns 0 if success, otherwise -1
+int new_line(struct WINDOW *w) {
+
+    if (w == NULL) {
+        fprintf(stderr, "cursor position not updated, window pointer is NULL\n");
+        return -1;
+    }
+
+    w->xcursor = 0;
+    w->ycursor += w->flut->rec[0].rowcnt * w->fcp.scale;
+    return 0;
+}
+
 // move cursor position one character position based on the current character
 // at the cursor position. Move to the next row if position is not viewable.
 // returns 0 if success, otherwise -1
@@ -219,6 +238,7 @@ int update_cursor_pos(struct WINDOW *w) {
 
     int charcnt;
     float scale;
+    float charwidth;
     //float cursor;
 
     if (w == NULL) {
@@ -229,12 +249,13 @@ int update_cursor_pos(struct WINDOW *w) {
     // move the cursor in the x direction, the width of the character
     charcnt = w->charcnt;
     scale = w->fcp.scale;
+    charwidth = (float)w->c[charcnt].fr.rec.colcnt * scale;
 
     // calculate where to move the cursor
-    w->xcursor += (float)w->c[charcnt].fr.rec.colcnt * scale;
+    w->xcursor += charwidth;
 
     // test if we went past the width of the window
-    if (w->xcursor > w->width) {
+    if (w->xcursor > (w->width - charwidth)) {
 
         // locate cursor to the start of the next line, based on the font size 
         w->xcursor = 0;
@@ -265,6 +286,10 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
         fprintf(stderr, "print error, string pointer is NULL\n");
         return -1;  
     }
+    if (w->charcnt == MAX_CHARS_IN_WINDOW) {
+        fprintf(stderr, "window full, exceeds max chars in window, nothing added\n");
+        return -1;
+    }
 
     sl = strnlen(s, MAX_PRINT_LINE);
     memcpy(t,s,sl);
@@ -274,6 +299,15 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
         //al_clear_to_color(RED);
 
         c = t[i];
+        if (c == '\n') {
+            new_line(w);
+            continue;
+        }
+        if (c == '\t') {
+            // todo add tab processing
+            continue;
+        }
+
         height = w->height;
         width = w->width;
         bgc = w->fcp.bgcolor;
@@ -334,6 +368,9 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
     return 0;
 }
 
+// window update
+// place in a thread so it is called repeatively at aknow rate
+// only need one of these for multiple windows
 int window_update(struct WINDOW *w) {
 
     int i;

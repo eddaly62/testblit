@@ -40,6 +40,9 @@ extern "C" {
 // display this character when there is no match in the font index array
 #define DEFAULT_ERR_CHAR_INDEX 0
 
+// window flags
+#define DEFAULT_WINDOW_FLAGS (ALLEGRO_NOFRAME)
+
 // font style
 extern const unsigned char INVERT;
 extern const unsigned char UNDER_SCORE;
@@ -100,6 +103,8 @@ struct WINDOW {
     ALLEGRO_COLOR winfgcolor;   // window foreground color
     float width;                // width of window
     float height;               // height of window
+    int winposx;                // position of window
+    int winposy;
     unsigned char blinkcounter; // blink counter
     unsigned char blinkdivisor; // mask for selecting blink rate divisor 
     
@@ -134,12 +139,13 @@ int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale);
 int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BITMAP *b);
 
 // window prototypes
-struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height);
+struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height, int xpos, int ypos);
 int set_window_colors(struct WINDOW *w, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc);
 int set_window_cursor_pos(struct WINDOW *w, int x, int y);
 int set_window_defaults(struct WINDOW *w);
 int clear_window(struct WINDOW *w);
 int set_window_font(struct WINDOW *w, struct FONT_LUT *fntlut);
+int new_line(struct WINDOW *w);
 int update_cursor_pos(struct WINDOW *w);
 int dprint(struct WINDOW *w, char *s, unsigned char style);
 int window_update(struct WINDOW *w);
