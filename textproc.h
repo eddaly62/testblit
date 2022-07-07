@@ -11,7 +11,7 @@ extern "C" {
 
 // color definitions
 #define BLACK   al_map_rgb(0, 0, 0)
-#define WHITE   al_map_rgb(255, 255, 255)
+#define WHITE   al_map_rgb(200, 200, 200)
 #define RED     al_map_rgb(255, 0, 0)
 #define BLUE    al_map_rgb(0, 0, 255)
 #define GREEN   al_map_rgb(0, 255, 0)
@@ -51,6 +51,7 @@ extern const unsigned char BLINK;
 extern const unsigned char NO_STYLE;
 
 // blink rates devisor for blink counter
+// fastest rate is determined by the rate that window_update() is called
 extern const unsigned char BLINK_MASK_1;    // fastest rate
 extern const unsigned char BLINK_MASK_p50;  // 1/2 of the fastest rate
 extern const unsigned char BLINK_MASK_p25;  // 1/4 of the fastest rate
@@ -96,7 +97,7 @@ struct CHARACTER {
 };
 
 struct WINDOW {
-    
+
     // display
     ALLEGRO_DISPLAY *display;   // pointer to display object
     ALLEGRO_COLOR winbgcolor;   // window background color
@@ -107,7 +108,7 @@ struct WINDOW {
     int winposy;
     unsigned char blinkcounter; // blink counter
     unsigned char blinkdivisor; // mask for selecting blink rate divisor 
-    
+
     // cursor
     float xcursor;              // cursor location
     float ycursor;
@@ -119,7 +120,7 @@ struct WINDOW {
 
     // tabs
     // todo - tbd
-    
+
     // text
     struct FONT_LUT *flut;      // current active font
     struct FONT_CHAR_PARAM fcp; // active character parameters
@@ -150,8 +151,6 @@ int update_cursor_pos(struct WINDOW *w);
 int dprint(struct WINDOW *w, char *s, unsigned char style);
 int window_update(struct WINDOW *w);
 void destroy_window(struct WINDOW *w);
-
-
 
 
 #ifdef __cplusplus

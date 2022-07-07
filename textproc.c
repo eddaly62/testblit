@@ -34,7 +34,7 @@ const unsigned char BLINK_MASK_p25  = 4;    // 1/4 of the fastest rate
 const unsigned char BLINK_MASK_p125 = 8;    // 1/8 of the fastest rate
 
 // builds a font look-up table that the bitmap functions will use
-// returns -1 if error, otherwise the number of characters found in font array
+// returns -1 if error, otherwise the number of characters found in the font array
 int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru, int runderline) {
 
     int n, rcnt, ccnt, nrec, idx;
@@ -54,9 +54,30 @@ int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru
     fi->underscorerow = runderline;
 
     for (n = 0; n < size; n++) {
+
+        if ((n > 0) && (font[n-1] == '@') && (font[n] == '@')) {
+            // character in table is the same as the start "new character" token
+            continue;
+        }
+        if ((n > 0) && (font[n-1] == '@') && (font[n] == '=')) {
+            // character in table is the same as the "end row character" token
+            continue;
+        }
+        if ((n > 0) && (font[n-1] == '@') && (font[n] == '*')) {
+            // character in table is the same as the "end row character" token
+            continue;
+        }
+        if ((n > 0) && (font[n-1] == '@') && (font[n] == 'x')) {
+            // character in table is the same as the "pixel on" token
+            continue;
+        }
+        if ((n > 0) && (font[n-1] == '@') && (font[n] == '-')) {
+            // character in table is the same as the "pixel off" token
+            continue;
+        }
         if (font[n] == '@') {
-            
-            // start of new character, adjust counts and indexes
+
+            // start of new character glyph, adjust counts and indexes
             rcnt = 0;
             ccnt = 0;
             nrec ++;
@@ -65,7 +86,7 @@ int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru
 
             // store character
             fi->rec[idx].c = font[n+1];
-            
+
             // store index to character pattern
             fi->rec[idx].index = n+2;
 
@@ -88,7 +109,7 @@ int build_font_lut(struct FONT_LUT *fi, char *font, size_t size, int rstrikethru
             fi->rec[idx].rowcnt = rcnt;
         }
     }
-    
+
     // return the number of character glyphs forund in font file or -1 if error
     return fi->numofchars;
 }
@@ -108,6 +129,7 @@ int get_font_record(char c, struct FONT_LUT *fi, struct FONT_REC *fr) {
             return 0;
         }
     }
+
     // did not find a match
     // return a error and a default char
     fr->strikethrurow = fi->strikethrurow;
@@ -134,24 +156,24 @@ int set_font_style(struct FONT_CHAR_PARAM *s, unsigned char style){
 }
 
 int set_font_color(struct FONT_CHAR_PARAM *fcp, ALLEGRO_COLOR bgc, ALLEGRO_COLOR fgc) {
-    
+
     if (fcp == NULL) {
         fprintf(stderr, "null pointer to FONT_CHAR_PARAM structure\n");
         return -1;
     }
-    
+
     fcp->bgcolor = bgc;
     fcp->fgcolor = fgc;
     return 0;
 }
 
 int set_font_scale(struct FONT_CHAR_PARAM *fcp, float scale) {
-    
+
     if (fcp == NULL) {
         fprintf(stderr, "null pointer to FONT_CHAR_PARAM structure\n");
         return -1;
     }
-    
+
     fcp->scale = scale;
     return 0;
 }
@@ -165,7 +187,6 @@ int make_character(struct FONT_REC *fr, struct FONT_CHAR_PARAM *fcp, ALLEGRO_BIT
     float x0, x1;
     float y0, y1;
     ALLEGRO_COLOR color;
-    //unsigned char style;
 
     if ((fr == NULL) || (fcp == NULL) || (b == NULL)) {
         return -1;

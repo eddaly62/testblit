@@ -22,7 +22,7 @@
 // create a window
 // returns pointer to window or NULL if error
 struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height, int xpos, int ypos) {
-    
+
     struct WINDOW *p;
 
     if (width == 0 || height == 0) {
@@ -30,6 +30,7 @@ struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height, in
         return NULL;
     }
 
+    // allocate memory
     p = malloc(sizeof(struct WINDOW));
     if (p == NULL) {
         fprintf(stderr, "could not create window\n");
@@ -57,7 +58,7 @@ struct WINDOW* create_window(ALLEGRO_DISPLAY *display, int width, int height, in
 
 // return resource used by window
 void destroy_window(struct WINDOW *w) {
-    
+
     int i;
 
     if (w == NULL) {
@@ -78,10 +79,10 @@ void destroy_window(struct WINDOW *w) {
     free(w);
 }
 
-// restores active colors to match the display colors
+// copy window color settings to character color settings
 // returns 0 if success, otherwise -1
 int restore_colors(struct WINDOW *w) {
-    
+
     if (w == NULL) {
         fprintf(stderr, "color not set, window pointer is NULL\n");
         return -1;
@@ -120,15 +121,15 @@ int set_window_cursor_pos(struct WINDOW *w, int x, int y) {
         fprintf(stderr, "cusor position not set, window pointer is NULL\n");
         return -1;
     }
-    w->xcursor = x;
-    w->ycursor = y;
+    w->xcursor = (float)x;
+    w->ycursor = (float)y;
     return 0;
 }
 
 // set active font for window
 // returns 0 if success, otherwise -1
 int set_window_font(struct WINDOW *w, struct FONT_LUT *fntlut) {
-    
+
     if (w == NULL) {
         fprintf(stderr, "font not set, window pointer is NULL\n");
         return -1;
@@ -173,7 +174,7 @@ int set_window_defaults(struct WINDOW *w) {
 // clear window
 // returns 0 if success, otherwise -1
 int clear_window(struct WINDOW *w) {
-    
+
     int r;
     int i;
 
@@ -205,7 +206,7 @@ int clear_window(struct WINDOW *w) {
 // copies the current cursor location to the charcter structure
 // returns 0 if success, otherwise -1
 int cp_cursorxy_to_charxy(struct WINDOW *w) {
-    
+
     if (w == NULL) {
         fprintf(stderr, "cursor position not updated, window pointer is NULL\n");
         return -1;
@@ -239,7 +240,6 @@ int update_cursor_pos(struct WINDOW *w) {
     int charcnt;
     float scale;
     float charwidth;
-    //float cursor;
 
     if (w == NULL) {
         fprintf(stderr, "cursor position not updated, window pointer is NULL\n");
@@ -257,15 +257,15 @@ int update_cursor_pos(struct WINDOW *w) {
     // test if we went past the width of the window
     if (w->xcursor > (w->width - charwidth)) {
 
-        // locate cursor to the start of the next line, based on the font size 
+        // locate cursor to the start of the next line, based on the font size
         w->xcursor = 0;
-        w->ycursor += (float)w->c[charcnt].fr.rec.rowcnt * scale; 
+        w->ycursor += (float)w->c[charcnt].fr.rec.rowcnt * scale;
     }
 
     return 0;
 }
 
-
+// print string to window
 // returns 0 if success, otherwise -1
 int dprint(struct WINDOW *w, char *s, unsigned char style) {
 
@@ -284,7 +284,7 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
     }
     if (s == NULL) {
         fprintf(stderr, "print error, string pointer is NULL\n");
-        return -1;  
+        return -1;
     }
     if (w->charcnt == MAX_CHARS_IN_WINDOW) {
         fprintf(stderr, "window full, exceeds max chars in window, nothing added\n");
@@ -312,64 +312,60 @@ int dprint(struct WINDOW *w, char *s, unsigned char style) {
         width = w->width;
         bgc = w->fcp.bgcolor;
         fgc = w->fcp.fgcolor;
-        //flut = w->flut;
-        //cursx = w->xcursor;
-        //cursy = w->ycursor;
         charcnt = w->charcnt;
-        //bmp = w->c[charcnt].bmp; // todo?
 
         w->c[charcnt].bmp = al_create_bitmap(width, height);
 
         r = get_font_record(c, w->flut, &w->c[charcnt].fr);
         if (r == -1) {
             printf("char not found in font index array\n");
-            return -1;  
+            return -1;
         }
 
         r = set_font_color(&w->c[charcnt].fcp, bgc, fgc);
         if (r == -1) {
             printf("could not set font parmaters\n");
-            return -1;  
+            return -1;
         }
 
         r = set_font_scale(&w->c[charcnt].fcp, DEFAULT_WINDOW_SCALE);
         if (r == -1) {
             printf("could not set font parmaters\n");
-            return -1;  
-        }   
+            return -1;
+        }
 
         r = set_font_style(&w->c[charcnt].fcp, style);
         if (r == -1) {
             printf("could not set font parmaters\n");
-            return -1;  
-        }   
+            return -1;
+        }
 
         r = make_character(&w->c[charcnt].fr, &w->c[charcnt].fcp, w->c[charcnt].bmp);
         if (r == -1) {
             printf("could not make character\n");
-            return -1;  
+            return -1;
         }
 
         r = cp_cursorxy_to_charxy(w);
         if (r == -1) {
             printf("could not copy cursor position\n");
-            return -1;  
+            return -1;
         }
 
         r = update_cursor_pos(w);
         if (r == -1) {
             printf("could not update cursor position\n");
-            return -1;  
+            return -1;
         }
         w->charcnt++;
-        printf("charcnt = %d\n", w->charcnt); // todo
+        printf("charcnt = %d\n", w->charcnt); // todo - for testing, remove
 
     }
     return 0;
 }
 
 // window update
-// place in a thread so it is called repeatively at aknow rate
+// place in a thread so it is called repeatively, at aknow rate
 // only need one of these for multiple windows
 int window_update(struct WINDOW *w) {
 
@@ -393,7 +389,7 @@ int window_update(struct WINDOW *w) {
     al_clear_to_color(w->winbgcolor);
 
     for (i = 0; i < w->charcnt; i++) {
-        
+
         // test if a valid bitmap
         if (w->c[i].bmp != NULL) {
 
